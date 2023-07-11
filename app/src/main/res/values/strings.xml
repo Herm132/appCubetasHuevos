@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">AppMovilCubetasHuevos</string>
+    <string name="app_name">ContaCubetas</string>
+    <string name="scan">Escanear</string>
 </resources>
