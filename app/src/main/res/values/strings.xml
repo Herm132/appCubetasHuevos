@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">ContaCubetas</string>
     <string name="scan">Escanear</string>
+    <string name="take_a_picture">Tomar una foto</string>
+    <string name="history">Historial\n</string>
+    <string name="information">Informacion</string>
+    <string name="date">Fecha</string>
+    <string name="hour">Hora</string>
+    <string name="cuvettes">Cubetas</string>
+    <string name="eggs">Huevos</string>
+    <string name="returned">Regresar</string>
 </resources>

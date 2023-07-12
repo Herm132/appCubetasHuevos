@@ -4,35 +4,62 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:padding="16dp"
     android:background="@color/background_app"
-    >
+    android:padding="16dp"
+    tools:context=".MainActivity">
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/ivPhoto"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnCamera"
+        app:layout_constraintBottom_toTopOf="@+id/llButtons"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:srcCompat="@color/black" />
 
-    <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/btnCamera"
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/llButtons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/background_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.947"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ivPhoto"
-        app:layout_constraintVertical_bias="0.972"
-        app:srcCompat="@android:drawable/ic_menu_camera" />
+        app:layout_constraintTop_toBottomOf="@+id/ivPhoto">
 
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnCamera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/take_a_picture"
+            android:backgroundTint="@color/background_button"
+            app:layout_constraintTop_toBottomOf="@+id/ivPhoto"
+            app:srcCompat="@android:drawable/ic_menu_camera"
+            android:layout_marginEnd="16dp"
+            />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnHistory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/background_button"
+            app:layout_constraintTop_toBottomOf="@+id/ivPhoto"
+            app:srcCompat="@android:drawable/ic_menu_sort_by_size"
+            android:contentDescription="@string/history"
+            android:layout_marginEnd="16dp" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnInformation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/background_button"
+            app:layout_constraintTop_toBottomOf="@+id/ivPhoto"
+            app:srcCompat="@android:drawable/ic_menu_info_details"
+            android:contentDescription="@string/information"/>
+
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
