@@ -4,7 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="16dp"
+    >
 
     <TextView
         android:id="@+id/textViewFecha"
@@ -12,7 +14,9 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="@string/date"/>
+        android:text="@string/date"
+        android:textColor="@color/black"
+        />
 
     <TextView
         android:id="@+id/textViewHora"
@@ -20,6 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:gravity="center"
+        android:textColor="@color/black"
         android:text="@string/hour"/>
 
     <TextView
@@ -27,6 +32,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:textColor="@color/black"
         android:gravity="center"
         android:text="@string/cuvettes"/>
 
@@ -35,6 +41,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:textColor="@color/black"
         android:gravity="center"
         android:text="@string/eggs"/>
 

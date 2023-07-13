@@ -17,7 +17,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@color/black" />
+        android:background="@color/black"
+   />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/llButtons"
