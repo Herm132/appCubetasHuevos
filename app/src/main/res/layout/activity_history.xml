@@ -26,7 +26,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/date"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/black"
             />
@@ -38,7 +38,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/hour"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/black"/>
 
@@ -50,7 +50,7 @@
             android:gravity="center"
             android:text="@string/cuvettes"
 
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/black"/>
 
@@ -61,7 +61,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/eggs"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/black"/>
     </LinearLayout>

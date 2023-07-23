@@ -16,6 +16,7 @@
         android:gravity="center"
         android:text="@string/date"
         android:textColor="@color/black"
+        android:textSize="14sp"
         />
 
     <TextView
@@ -25,7 +26,8 @@
         android:layout_weight="1"
         android:gravity="center"
         android:textColor="@color/black"
-        android:text="@string/hour"/>
+        android:text="@string/hour"
+        android:textSize="14sp"/>
 
     <TextView
         android:id="@+id/textViewCubetas"
@@ -34,7 +36,8 @@
         android:layout_weight="1"
         android:textColor="@color/black"
         android:gravity="center"
-        android:text="@string/cuvettes"/>
+        android:text="@string/cuvettes"
+        android:textSize="14sp"/>
 
     <TextView
         android:id="@+id/textViewHuevos"
@@ -43,6 +46,7 @@
         android:layout_weight="1"
         android:textColor="@color/black"
         android:gravity="center"
-        android:text="@string/eggs"/>
+        android:text="@string/eggs"
+        android:textSize="14sp"/>
 
 </LinearLayout>

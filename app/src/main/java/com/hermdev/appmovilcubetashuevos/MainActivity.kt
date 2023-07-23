@@ -27,6 +27,9 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import android.util.Base64
+import java.io.ByteArrayOutputStream
+
 
 class MainActivity : AppCompatActivity() {
     //Crear variable que esta en la vista con su tipo respectivo
@@ -162,6 +165,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun convertBitmapToBase64(bitmap: Bitmap?): String {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        if (bitmap != null) {
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+        }
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
+    }
 
     //Enviar foto al modelo
     private fun sendPhoto(imgBits: Bitmap?) {
@@ -170,15 +181,17 @@ class MainActivity : AppCompatActivity() {
         val okHttpClient = OkHttpClient()
         //Creamos objeto json
         val jsonObject = JSONObject()
+
+        val base64Image = convertBitmapToBase64(imgBits)
         //Definir parametros
-        jsonObject.put("datos", imgBits)
+        jsonObject.put("datos", base64Image)
         //Especificar el tipo de contenido en el encabezado
         val jsonMediaType = "application/json; charset=utf-8".toMediaType()
         //Definir el body de la peticion
         val requestBody = jsonObject.toString().toRequestBody(jsonMediaType)
         // Construimos la peticion con un request
         val solicitud = Request.Builder()
-            .url("http://192.168.100.5:5000/valor")
+            .url("http://192.168.100.5:5000/valor2")
             .post(requestBody)
             .build()
 
@@ -207,7 +220,7 @@ class MainActivity : AppCompatActivity() {
                     val textoRespuesta = jsonResponse.optString("respuesta")
 
                     //Regresaria la imagen y el numero de cubetas
-                    Log.i("Flask","$textoRespuesta")
+                    Log.i("Flask", "$textoRespuesta")
                     //tvTotal.text = textoRespuesta
                 }
             }

@@ -88,8 +88,4 @@ class HistoryActivity : AppCompatActivity() {
 
         return dataList
     }
-
-
-
-
 }
