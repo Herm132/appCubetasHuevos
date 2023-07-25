@@ -1,8 +1,8 @@
 package com.hermdev.appmovilcubetashuevos
 
-
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
@@ -10,16 +10,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.appcompat.widget.AppCompatImageView
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
+import okhttp3.*
 import org.json.JSONObject
 import java.io.File
 import java.io.FileWriter
@@ -28,8 +19,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import android.util.Base64
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
-
 
 class MainActivity : AppCompatActivity() {
     //Crear variable que esta en la vista con su tipo respectivo
@@ -37,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnCamera: AppCompatImageButton
     private lateinit var btnHistory: AppCompatImageButton
     private lateinit var btnInformation: AppCompatImageButton
+
 
     //Clase iniciar actividad
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,17 +67,18 @@ class MainActivity : AppCompatActivity() {
         btnInformation.setOnClickListener {
             // Crear un nuevo registro en el archivo
 
+
         }
     }
 
     // Crear un nuevo registro en el archivo
-    private fun newRegister() {
+    private fun newRegister(number: Int) {
         // Obtener la fecha y hora actual
         val currentDate = getCurrentDate()
         val currentTime = getCurrentTime()
 
         // Calcular el número de cubetas y huevos
-        val cuvettes = 10
+        val cuvettes = number
         val eggs = cuvettes * 30
 
         // Crear un objeto TableRowData con los datos del nuevo registro
@@ -159,9 +153,11 @@ class MainActivity : AppCompatActivity() {
             // Verificar que el código de solicitud sea 1 y el resultado sea RESULT_OK
             val extras: Bundle? = data?.extras
             val imgBitmap: Bitmap? = extras?.get("data") as Bitmap?
-            sendPhoto(imgBitmap)
-            newRegister()
-            ivPhoto.setImageBitmap(imgBitmap)
+            getImageModel(imgBitmap)
+            getNumModel(imgBitmap)
+
+
+
         }
     }
 
@@ -175,7 +171,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     //Enviar foto al modelo
-    private fun sendPhoto(imgBits: Bitmap?) {
+    private fun getNumModel(imgBits: Bitmap?) {
 
         // Creamos un cliente
         val okHttpClient = OkHttpClient()
@@ -191,7 +187,7 @@ class MainActivity : AppCompatActivity() {
         val requestBody = jsonObject.toString().toRequestBody(jsonMediaType)
         // Construimos la peticion con un request
         val solicitud = Request.Builder()
-            .url("http://192.168.100.5:5000/valor2")
+            .url("http://192.168.100.5:5000/numcubetas")
             .post(requestBody)
             .build()
 
@@ -206,22 +202,85 @@ class MainActivity : AppCompatActivity() {
                         "Error al conectar con el servidor",
                         Toast.LENGTH_SHORT
                     ).show()
-                    Log.i("Flask", "$e")
+                    Log.e("Flask", "Error de conexión: ${e.message}")
                 }
             }
 
             //En caso de que se comunique
             override fun onResponse(call: Call, response: Response) {
-                GlobalScope.launch(Dispatchers.Main) {
-                    val respuesta = response.body?.string()
-                    val jsonResponse = JSONObject(respuesta)
+
+                if (!response.isSuccessful) {
+                    // Handle the case where the response is not successful
+                    return
+                }
+
+                val responseBody = response.body?.string()
+
+                try {
+                    val jsonObject = JSONObject(responseBody)
+                    val number = jsonObject.getInt("number")
+                    newRegister(number)
 
 
-                    val textoRespuesta = jsonResponse.optString("respuesta")
+                } catch (e: Exception) {
+                    // Handle JSON parsing or other exceptions here
+                }
 
-                    //Regresaria la imagen y el numero de cubetas
-                    Log.i("Flask", "$textoRespuesta")
-                    //tvTotal.text = textoRespuesta
+            }
+
+
+        })
+
+
+    }
+
+    private fun getImageModel(imgBits: Bitmap?) {
+
+        val url = "http://192.168.100.5:5000/imagenCubetas"
+
+        val client = OkHttpClient()
+
+        //Creamos objeto json
+        val jsonObject = JSONObject()
+
+        val base64Image = convertBitmapToBase64(imgBits)
+        //Definir parametros
+        jsonObject.put("datos", base64Image)
+        //Especificar el tipo de contenido en el encabezado
+        val jsonMediaType = "application/json; charset=utf-8".toMediaType()
+        //Definir el body de la peticion
+        val requestBody = jsonObject.toString().toRequestBody(jsonMediaType)
+
+        val request = Request.Builder()
+            .url(url)
+            .post(requestBody)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    // Mostrar un mensaje breve en la pantalla
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Error al conectar con el servidor",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    Log.e("Flask", "Error de conexión: ${e.message}")
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (!response.isSuccessful) {
+                    // Handle the case where the response is not successful
+                    return
+                }
+
+                val inputStream = response.body?.byteStream()
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+
+                // Update the ImageView on the main thread
+                runOnUiThread {
+                    ivPhoto.setImageBitmap(bitmap)
                 }
             }
         })
@@ -230,3 +289,9 @@ class MainActivity : AppCompatActivity() {
 
 
 }
+
+
+
+
+
+
