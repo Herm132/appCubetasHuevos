@@ -3,6 +3,8 @@ package com.hermdev.appmovilcubetashuevos
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
+
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
@@ -19,6 +21,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import android.util.Base64
+import androidx.appcompat.widget.AppCompatTextView
+
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
@@ -29,6 +33,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnCamera: AppCompatImageButton
     private lateinit var btnHistory: AppCompatImageButton
     private lateinit var btnInformation: AppCompatImageButton
+    private lateinit var tvCuvettes: AppCompatTextView
+    private lateinit var tvEggs:AppCompatTextView
 
 
     //Clase iniciar actividad
@@ -45,7 +51,8 @@ class MainActivity : AppCompatActivity() {
         btnCamera = findViewById(R.id.btnCamera)
         btnHistory = findViewById(R.id.btnHistory)
         btnInformation = findViewById(R.id.btnInformation)
-
+        tvCuvettes=findViewById(R.id.tvCuvettes)
+        tvEggs= findViewById(R.id.tvEggs)
     }
 
     // Crear acciones de click de cada botón
@@ -61,11 +68,12 @@ class MainActivity : AppCompatActivity() {
         btnCamera.setOnClickListener {
             // Abrir la cámara
             openCamera()
+
         }
 
         // Listener del botón "Información"
         btnInformation.setOnClickListener {
-            // Crear un nuevo registro en el archivo
+            abrirPaginaWeb()
 
 
         }
@@ -81,12 +89,18 @@ class MainActivity : AppCompatActivity() {
         val cuvettes = number
         val eggs = cuvettes * 30
 
+
         // Crear un objeto TableRowData con los datos del nuevo registro
         val tableRowData =
             TableRowData(currentDate, currentTime, cuvettes.toString(), eggs.toString())
 
         // Guardar el nuevo registro en el archivo
         saveTableRowDataToFile(tableRowData)
+
+        runOnUiThread {
+            tvEggs.text = eggs.toString()
+            tvCuvettes.text = cuvettes.toString()
+        }
     }
 
     // Obtener la fecha actual en formato de cadena de texto
@@ -142,6 +156,7 @@ class MainActivity : AppCompatActivity() {
         if (intent.resolveActivity(packageManager) != null) {
             // Iniciar la actividad de la cámara y esperar el resultado (código de solicitud 1)
             startActivityForResult(intent, 1)
+
         }
     }
 
@@ -153,6 +168,7 @@ class MainActivity : AppCompatActivity() {
             // Verificar que el código de solicitud sea 1 y el resultado sea RESULT_OK
             val extras: Bundle? = data?.extras
             val imgBitmap: Bitmap? = extras?.get("data") as Bitmap?
+
             getImageModel(imgBitmap)
             getNumModel(imgBitmap)
 
@@ -187,7 +203,7 @@ class MainActivity : AppCompatActivity() {
         val requestBody = jsonObject.toString().toRequestBody(jsonMediaType)
         // Construimos la peticion con un request
         val solicitud = Request.Builder()
-            .url("http://192.168.100.5:5000/numcubetas")
+            .url("http://192.168.100.13:5000/numcubetas")
             .post(requestBody)
             .build()
 
@@ -213,30 +229,24 @@ class MainActivity : AppCompatActivity() {
                     // Handle the case where the response is not successful
                     return
                 }
-
                 val responseBody = response.body?.string()
-
                 try {
                     val jsonObject = JSONObject(responseBody)
                     val number = jsonObject.getInt("number")
+                    //Colocar los valores en la vista principal
                     newRegister(number)
-
-
+                    Log.i("Flask","$number")
                 } catch (e: Exception) {
                     // Handle JSON parsing or other exceptions here
                 }
-
             }
-
-
         })
-
-
     }
 
     private fun getImageModel(imgBits: Bitmap?) {
 
-        val url = "http://192.168.100.5:5000/imagenCubetas"
+        val url = "http://192.168.100.13:5000/imagenCubetas"
+
 
         val client = OkHttpClient()
 
@@ -286,6 +296,16 @@ class MainActivity : AppCompatActivity() {
         })
 
     }
+
+    fun abrirPaginaWeb() {
+        val url = "https://uceedu-my.sharepoint.com/:b:/g/personal/hereyes_uce_edu_ec/EcjEbt1okphIibcC0bwDlQQB1j1uZD9ccKc0wheR1QWCgg?e=bicdco" // Reemplaza con la URL de la página web que deseas abrir
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.data = Uri.parse(url)
+        startActivity(intent)
+    }
+
+
+
 
 
 }
