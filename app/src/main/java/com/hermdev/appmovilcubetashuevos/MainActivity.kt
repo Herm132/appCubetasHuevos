@@ -1,10 +1,11 @@
 package com.hermdev.appmovilcubetashuevos
 
+import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-
+import android.view.ScaleGestureDetector
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
@@ -21,7 +22,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import android.util.Base64
+import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.content.ContentProviderCompat.requireContext
 
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -32,9 +35,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var ivPhoto: AppCompatImageView
     private lateinit var btnCamera: AppCompatImageButton
     private lateinit var btnHistory: AppCompatImageButton
+    private lateinit var btnChosser: AppCompatImageButton
     private lateinit var btnInformation: AppCompatImageButton
     private lateinit var tvCuvettes: AppCompatTextView
     private lateinit var tvEggs:AppCompatTextView
+    private lateinit var scaleGestureDetector: ScaleGestureDetector
+    private var scaleFactor = 1.0f
+
+    private var lastTouchX: Float = 0.toFloat()
+    private var lastTouchY: Float = 0.toFloat()
+    private var posX: Float = 0.toFloat()
+    private var posY: Float = 0.toFloat()
+
 
 
     //Clase iniciar actividad
@@ -53,6 +65,8 @@ class MainActivity : AppCompatActivity() {
         btnInformation = findViewById(R.id.btnInformation)
         tvCuvettes=findViewById(R.id.tvCuvettes)
         tvEggs= findViewById(R.id.tvEggs)
+        btnChosser = findViewById(R.id.btnChosser)
+        scaleGestureDetector = ScaleGestureDetector(this, ScaleListener())
     }
 
     // Crear acciones de click de cada botón
@@ -68,16 +82,56 @@ class MainActivity : AppCompatActivity() {
         btnCamera.setOnClickListener {
             // Abrir la cámara
             openCamera()
+            tvEggs.text = ""
+            tvCuvettes.text = ""
 
         }
 
         // Listener del botón "Información"
         btnInformation.setOnClickListener {
-            abrirPaginaWeb()
+            openPageWeb()
 
 
         }
+        // Listener del botón "Chosser"
+        btnChosser.setOnClickListener {
+            openImagePicker()
+            tvEggs.text = ""
+            tvCuvettes.text = ""
+        }
     }
+
+    private fun openImagePicker() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, 2)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == RESULT_OK) {
+            when (requestCode) {
+                1 -> { // Código de solicitud para la cámara
+                    val extras: Bundle? = data?.extras
+                    val imgBitmap: Bitmap? = extras?.get("data") as Bitmap?
+                    getImageModel(imgBitmap)
+                    getNumModel(imgBitmap)
+                }
+                2 -> { // Código de solicitud para la galería
+                    val selectedImageUri = data?.data
+                    val imgBitmap: Bitmap? = if (selectedImageUri != null) {
+                        val inputStream = contentResolver.openInputStream(selectedImageUri)
+                        BitmapFactory.decodeStream(inputStream)
+                    } else {
+                        null
+                    }
+                    getImageModel(imgBitmap)
+                    getNumModel(imgBitmap)
+                }
+            }
+        }
+    }
+
 
     // Crear un nuevo registro en el archivo
     private fun newRegister(number: Int) {
@@ -162,21 +216,6 @@ class MainActivity : AppCompatActivity() {
 
     //Se llama cuando se recibe un resultado de una actividad iniciada con `startActivityForResult()`.
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 1 && resultCode == RESULT_OK) {
-            // Verificar que el código de solicitud sea 1 y el resultado sea RESULT_OK
-            val extras: Bundle? = data?.extras
-            val imgBitmap: Bitmap? = extras?.get("data") as Bitmap?
-
-            getImageModel(imgBitmap)
-            getNumModel(imgBitmap)
-
-
-
-        }
-    }
-
     fun convertBitmapToBase64(bitmap: Bitmap?): String {
         val byteArrayOutputStream = ByteArrayOutputStream()
         if (bitmap != null) {
@@ -203,7 +242,8 @@ class MainActivity : AppCompatActivity() {
         val requestBody = jsonObject.toString().toRequestBody(jsonMediaType)
         // Construimos la peticion con un request
         val solicitud = Request.Builder()
-            .url("http://192.168.100.13:5000/numcubetas")
+                // 192.168.200.23:5000
+            .url("http://192.168.200.11:5000 /numcubetas")
             .post(requestBody)
             .build()
 
@@ -243,16 +283,11 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun getImageModel(imgBits: Bitmap?) {
-
-        val url = "http://192.168.100.13:5000/imagenCubetas"
-
-
+    private fun getImageModel2(imgBits: Bitmap?) {
+        val url = "http://192.168.100.23:5000/numcubetas"
         val client = OkHttpClient()
-
         //Creamos objeto json
         val jsonObject = JSONObject()
-
         val base64Image = convertBitmapToBase64(imgBits)
         //Definir parametros
         jsonObject.put("datos", base64Image)
@@ -260,12 +295,10 @@ class MainActivity : AppCompatActivity() {
         val jsonMediaType = "application/json; charset=utf-8".toMediaType()
         //Definir el body de la peticion
         val requestBody = jsonObject.toString().toRequestBody(jsonMediaType)
-
         val request = Request.Builder()
             .url(url)
             .post(requestBody)
             .build()
-
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
@@ -278,11 +311,9 @@ class MainActivity : AppCompatActivity() {
                     Log.e("Flask", "Error de conexión: ${e.message}")
                 }
             }
-
             override fun onResponse(call: Call, response: Response) {
                 if (!response.isSuccessful) {
-                    // Handle the case where the response is not successful
-                    return
+                    Log.e("Flask", "Error en la respuesta")
                 }
 
                 val inputStream = response.body?.byteStream()
@@ -297,14 +328,81 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun abrirPaginaWeb() {
+    private fun getImageModel(imgBits: Bitmap?) {
+        val serverUrl = "http://192.168.200.11:5000 /imagenCubetas"
+
+
+        val client = OkHttpClient()
+
+        val base64Image = convertBitmapToBase64(imgBits)
+
+        val jsonObject = JSONObject().apply {
+            put("datos", base64Image)
+        }
+
+        val jsonMediaType = "application/json; charset=utf-8".toMediaType()
+        val requestBody = jsonObject.toString().toRequestBody(jsonMediaType)
+
+
+
+
+        val request = Request.Builder()
+            .url(serverUrl)
+            .post(requestBody)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Error al conectar con el servidor",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    Log.e("Flask", "Error de conexión: ${e.message}")
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) {
+                        Log.e("Flask", "Error en la respuesta: ${response.code}")
+                    } else {
+                        val inputStream = it.body?.byteStream()
+                        val bitmap = BitmapFactory.decodeStream(inputStream)
+
+                        runOnUiThread {
+                            ivPhoto.setImageBitmap(bitmap)
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+
+
+
+    fun openPageWeb() {
         val url = "https://uceedu-my.sharepoint.com/:b:/g/personal/hereyes_uce_edu_ec/EcjEbt1okphIibcC0bwDlQQB1j1uZD9ccKc0wheR1QWCgg?e=bicdco" // Reemplaza con la URL de la página web que deseas abrir
         val intent = Intent(Intent.ACTION_VIEW)
         intent.data = Uri.parse(url)
         startActivity(intent)
     }
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        scaleGestureDetector.onTouchEvent(event)
+        return true
+    }
+    private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        override fun onScale(scaleGestureDetector: ScaleGestureDetector): Boolean {
+            scaleFactor *= scaleGestureDetector.scaleFactor
+            scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 10.0f)) // Limit scale factor
 
-
+            ivPhoto.scaleX = scaleFactor
+            ivPhoto.scaleY = scaleFactor
+            return true
+        }
+    }
 
 
 
